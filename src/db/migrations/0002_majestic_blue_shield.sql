@@ -1,0 +1,1 @@
+ALTER TABLE "chirps" ALTER COLUMN "userId" SET DATA TYPE uuid;

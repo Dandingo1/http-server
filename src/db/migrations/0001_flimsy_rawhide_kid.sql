@@ -1,0 +1,1 @@
+ALTER TABLE "chirps" ALTER COLUMN "user_Id" SET NOT NULL;
