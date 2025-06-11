@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createChirp } from "../db/queries/chirps.js";
+import { createChirp, getChirps } from "../db/queries/chirps.js";
 import { handlerValidateChirp } from "./validate-chirp.js";
 
 export async function handlerCreateChirp(req: Request, res: Response) {
@@ -25,5 +25,12 @@ export async function handlerCreateChirp(req: Request, res: Response) {
         updatedAt: chirp.updatedAt,
         userId: chirp.userId,
     });
+    res.end();
+}
+
+export async function handlerGetChirps(_: Request, res: Response) {
+    const chirps = await getChirps();
+    res.set("Content-Type", "application/json; charset=utf-8");
+    res.status(200).send(chirps);
     res.end();
 }
