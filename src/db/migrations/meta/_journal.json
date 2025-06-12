@@ -15,6 +15,13 @@
       "when": 1749669557560,
       "tag": "0001_flimsy_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1749741124380,
+      "tag": "0002_lean_jack_power",
+      "breakpoints": true
     }
   ]
 }

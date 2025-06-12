@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { createChirp, getChirps } from "../db/queries/chirps.js";
-import { handlerValidateChirp } from "./validate-chirp.js";
+import { createChirp, getChirp, getChirps } from "../db/queries/chirps.js";
+import { handlerValidateChirp } from "../services/validate-chirp.js";
+import { NotFoundError } from "../classes/errors.js";
 
 export async function handlerCreateChirp(req: Request, res: Response) {
     type parameters = {
@@ -28,9 +29,21 @@ export async function handlerCreateChirp(req: Request, res: Response) {
     res.end();
 }
 
-export async function handlerGetChirps(_: Request, res: Response) {
+export async function handlerRetrieveChirps(_: Request, res: Response) {
     const chirps = await getChirps();
     res.set("Content-Type", "application/json; charset=utf-8");
     res.status(200).send(chirps);
+    res.end();
+}
+
+export async function handlerRetrieveChirp(req: Request, res: Response) {
+    const { chirpId } = req.params;
+    const chirp = await getChirp(chirpId);
+    if (!chirp) {
+        throw new NotFoundError(`Chirp with chirpId: ${chirpId} not found`);
+    }
+
+    res.set("Content-Type", "application/json; charset=utf-8");
+    res.status(200).send(chirp);
     res.end();
 }

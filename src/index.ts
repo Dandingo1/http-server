@@ -1,9 +1,4 @@
-import express, {
-    ErrorRequestHandler,
-    NextFunction,
-    Request,
-    Response,
-} from "express";
+import express from "express";
 import { handlerReadiness } from "./api/readiness.js";
 import {
     errorHandler,
@@ -17,7 +12,12 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { config } from "./config.js";
 import { handlerCreateUser } from "./api/users.js";
 import { handlerReset } from "./api/reset.js";
-import { handlerCreateChirp, handlerGetChirps } from "./api/chirps.js";
+import {
+    handlerCreateChirp,
+    handlerRetrieveChirp,
+    handlerRetrieveChirps,
+} from "./api/chirps.js";
+import { handlerLogin } from "./api/login.js";
 
 const migrationClient = postgres(config.db.url, { max: 1 });
 await migrate(drizzle(migrationClient), config.db.migrationConfig);
@@ -65,7 +65,21 @@ app.post("/api/chirps", async (req, res, next) => {
 });
 app.get("/api/chirps", async (req, res, next) => {
     try {
-        await handlerGetChirps(req, res);
+        await handlerRetrieveChirps(req, res);
+    } catch (err) {
+        next(err);
+    }
+});
+app.get("/api/chirps/:chirpID", async (req, res, next) => {
+    try {
+        await handlerRetrieveChirp(req, res);
+    } catch (err) {
+        next(err);
+    }
+});
+app.post("/api/login", async (req, res, next) => {
+    try {
+        await handlerLogin(req, res);
     } catch (err) {
         next(err);
     }
