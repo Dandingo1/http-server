@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request } from "express";
+import { randomBytes } from "crypto";
 
 const ISSUER = "chirpy";
 
@@ -49,4 +50,8 @@ export function getBearerToken(req: Request): string {
         throw new Error("Token not recognized");
     }
     return token[1].trim();
+}
+
+export function makeRefreshToken(): string {
+    return randomBytes(32).toString("hex");
 }

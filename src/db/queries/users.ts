@@ -16,7 +16,7 @@ export async function reset(): Promise<void> {
     await db.delete(chirps);
 }
 
-export async function login(email: string): Promise<NewUser> {
+export async function retrieveUser(email: string): Promise<NewUser> {
     const result = await db.select().from(users).where(eq(users.email, email));
     if (result.length === 0) {
         return {} as NewUser;

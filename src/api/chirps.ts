@@ -1,14 +1,19 @@
 import { Request, Response } from "express";
 import { createChirp, getChirp, getChirps } from "../db/queries/chirps.js";
 import { handlerValidateChirp } from "../services/validate-chirp.js";
-import { NotFoundError } from "../classes/errors.js";
+import { NotFoundError, UnathorizedError } from "../classes/errors.js";
 import { getBearerToken, validateJWT } from "../services/auth.js";
 
 process.loadEnvFile(".env");
 
 export async function handlerCreateChirp(req: Request, res: Response) {
     const token = getBearerToken(req);
-    const userId = validateJWT(token, process.env.SECRET || "");
+    let userId = "";
+    try {
+        userId = validateJWT(token, process.env.SECRET || "");
+    } catch (err) {
+        throw new UnathorizedError("Unauthorized access");
+    }
 
     const validatedChirp = await handlerValidateChirp(req, res);
 

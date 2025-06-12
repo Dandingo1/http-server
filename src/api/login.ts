@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
 import { BadRequestError, UnathorizedError } from "../classes/errors.js";
-import { login } from "../db/queries/users.js";
-import { checkPasswordHash, makeJWT } from "../services/auth.js";
+import { retrieveUser } from "../db/queries/users.js";
+import {
+    checkPasswordHash,
+    makeJWT,
+    makeRefreshToken,
+} from "../services/auth.js";
+import { createToken } from "../db/queries/refresh.js";
 
 process.loadEnvFile(".env");
 
@@ -9,7 +14,6 @@ export async function handlerLogin(req: Request, res: Response) {
     type parameters = {
         password: string;
         email: string;
-        expiresInSeconds?: number;
     };
 
     const params: parameters = req.body;
@@ -17,11 +21,7 @@ export async function handlerLogin(req: Request, res: Response) {
         throw new BadRequestError("Missing required fields");
     }
 
-    if (!params.expiresInSeconds || params.expiresInSeconds > 3600) {
-        params.expiresInSeconds = 3600;
-    }
-
-    const user = await login(params.email);
+    const user = await retrieveUser(params.email);
     if (!user) {
         throw new UnathorizedError("Incorrect email or password");
     }
@@ -31,23 +31,28 @@ export async function handlerLogin(req: Request, res: Response) {
         user.hashed_password || ""
     );
 
-    const token = makeJWT(
-        user.id || "",
-        params.expiresInSeconds,
-        process.env.SECRET || ""
-    );
-
-    if (isPasswordMatch) {
-        res.set("Content-Type", "application/json; charset=utf-8");
-        res.status(200).send({
-            id: user.id,
-            email: user.email,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
-            token: token,
-        });
-        res.end();
-    } else {
+    if (!isPasswordMatch) {
         throw new UnathorizedError("Incorrect email or password");
     }
+
+    const accessToken = makeJWT(user.id || "", 3600, process.env.SECRET || "");
+    const refreshToken = makeRefreshToken();
+    console.log(refreshToken);
+    console.log(refreshToken.length);
+
+    const isTokenSaved = await createToken(user.id || "", refreshToken);
+    if (!isTokenSaved) {
+        throw new UnathorizedError("Could not save refresh token");
+    }
+
+    res.set("Content-Type", "application/json; charset=utf-8");
+    res.status(200).send({
+        id: user.id,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        token: accessToken,
+        refreshToken: refreshToken,
+    });
+    res.end();
 }
