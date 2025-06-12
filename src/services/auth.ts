@@ -1,5 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { Request } from "express";
+
+const ISSUER = "chirpy";
 
 export async function hashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt();
@@ -20,13 +23,15 @@ export function makeJWT(
     expiresIn: number,
     secret: string
 ): string {
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const expiredAt = issuedAt + expiresIn;
     const payload: payload = {
-        iss: "chirpy",
+        iss: ISSUER,
         sub: userId,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + expiresIn,
+        iat: issuedAt,
+        exp: expiredAt,
     };
-    return jwt.sign(payload, secret);
+    return jwt.sign(payload, secret, { algorithm: "HS256" });
 }
 
 export function validateJWT(tokenString: string, secret: string): string {
@@ -36,4 +41,12 @@ export function validateJWT(tokenString: string, secret: string): string {
     } catch (err) {
         throw new Error("Invalid token or token has expired");
     }
+}
+
+export function getBearerToken(req: Request): string {
+    const token = req.get("Authorization")?.split(" ");
+    if (!token) {
+        throw new Error("Token not recognized");
+    }
+    return token[1].trim();
 }

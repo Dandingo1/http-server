@@ -5,6 +5,7 @@ process.loadEnvFile(".env");
 type Config = {
     api: APIConfig;
     db: DBConfig;
+    secret: string;
 };
 
 type APIConfig = {
@@ -32,4 +33,5 @@ export const config: Config = {
         url: process.env.DB_URL || "",
         migrationConfig: migrationConfig,
     },
+    secret: process.env.SECRET || "",
 };
