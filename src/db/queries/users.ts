@@ -44,3 +44,13 @@ export async function retrieveUsers(): Promise<NewUser[]> {
     const result = await db.select().from(users);
     return result;
 }
+
+export async function upgradeUser(userId: string): Promise<NewUser> {
+    const result = await db
+        .update(users)
+        .set({ is_chirpy_red: true })
+        .where(eq(users.id, userId))
+        .returning();
+
+    return result[0];
+}

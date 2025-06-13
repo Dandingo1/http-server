@@ -1,8 +1,7 @@
 import type { Request, Response } from "express";
-import { createUser, retrieveUsers, updateUser } from "../db/queries/users.js";
-import { BadRequestError, UnathorizedError } from "../classes/errors.js";
+import { createUser, updateUser, upgradeUser } from "../db/queries/users.js";
+import { BadRequestError, NotFoundError } from "../classes/errors.js";
 import { getBearerToken, hashPassword, validateJWT } from "../services/auth.js";
-import { retrieveToken } from "../db/queries/refresh.js";
 
 process.loadEnvFile(".env");
 
@@ -36,6 +35,7 @@ export async function handlerCreateUser(
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        isChirpyRed: user.is_chirpy_red,
     });
     res.end();
 }
@@ -65,5 +65,33 @@ export async function handlerUpdateUser(
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        isChirpyRed: user.is_chirpy_red,
     });
+}
+
+export async function handlerUpgradeUser(
+    req: Request,
+    res: Response
+): Promise<void> {
+    type parameters = {
+        event: string;
+        data: {
+            userId: string;
+        };
+    };
+
+    const params: parameters = req.body;
+
+    if (params.event !== "user.upgraded") {
+        res.status(204);
+        res.end();
+    }
+
+    const upgradedUser = await upgradeUser(params.data.userId);
+    if (!upgradedUser) {
+        throw new NotFoundError("User cannot be found");
+    }
+
+    res.status(204).send();
+    res.end();
 }

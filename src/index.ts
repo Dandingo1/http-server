@@ -10,7 +10,11 @@ import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { config } from "./config.js";
-import { handlerCreateUser, handlerUpdateUser } from "./api/users.js";
+import {
+    handlerCreateUser,
+    handlerUpdateUser,
+    handlerUpgradeUser,
+} from "./api/users.js";
 import { handlerReset } from "./api/reset.js";
 import {
     handlerCreateChirp,
@@ -64,6 +68,13 @@ app.put("/api/users", async (request, response, next) => {
         await handlerUpdateUser(request, response);
     } catch (err) {
         next(err);
+    }
+});
+app.post("/api/polka/webhooks", async (req, res, next) => {
+    try {
+        await handlerUpgradeUser(req, res);
+    } catch (error) {
+        next(error);
     }
 });
 app.post("/api/chirps", async (req, res, next) => {

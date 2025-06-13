@@ -1,6 +1,6 @@
 {
-  "id": "3c24d331-9508-42d1-bf8e-58768b46215a",
-  "prevId": "68344cc7-2dab-4111-bffc-f88b9295b2d3",
+  "id": "515e4fe7-c8e8-4ead-b717-b44a36be62d2",
+  "prevId": "3c24d331-9508-42d1-bf8e-58768b46215a",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -166,6 +166,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'unset'"
+        },
+        "is_chirpy_red": {
+          "name": "is_chirpy_red",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
