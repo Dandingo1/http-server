@@ -1,7 +1,16 @@
 import type { Request, Response } from "express";
 import { createUser, updateUser, upgradeUser } from "../db/queries/users.js";
-import { BadRequestError, NotFoundError } from "../classes/errors.js";
-import { getBearerToken, hashPassword, validateJWT } from "../services/auth.js";
+import {
+    BadRequestError,
+    NotFoundError,
+    UnathorizedError,
+} from "../classes/errors.js";
+import {
+    getApiKey,
+    getBearerToken,
+    hashPassword,
+    validateJWT,
+} from "../services/auth.js";
 
 process.loadEnvFile(".env");
 
@@ -73,6 +82,11 @@ export async function handlerUpgradeUser(
     req: Request,
     res: Response
 ): Promise<void> {
+    const apiKey = getApiKey(req);
+    if (apiKey !== process.env.POLKA_KEY) {
+        throw new UnathorizedError("API key was not recognized");
+    }
+
     type parameters = {
         event: string;
         data: {
