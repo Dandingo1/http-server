@@ -12,6 +12,20 @@ export async function getChirps(): Promise<NewChirp[]> {
     return result;
 }
 
+export async function getChirpsByAuthorId(
+    authorId: string
+): Promise<NewChirp[]> {
+    const result = await db
+        .select()
+        .from(chirps)
+        .where(eq(chirps.userId, authorId));
+    if (!result) {
+        return [] as NewChirp[];
+    }
+
+    return result;
+}
+
 export async function getChirp(id: string): Promise<NewChirp> {
     const result = await db.select().from(chirps).where(eq(chirps.id, id));
     if (!result) {

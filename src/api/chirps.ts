@@ -4,6 +4,7 @@ import {
     deleteChirp,
     getChirp,
     getChirps,
+    getChirpsByAuthorId,
 } from "../db/queries/chirps.js";
 import { handlerValidateChirp } from "../services/validate-chirp.js";
 import {
@@ -43,14 +44,25 @@ export async function handlerCreateChirp(req: Request, res: Response) {
     res.end();
 }
 
-export async function handlerRetrieveChirps(_: Request, res: Response) {
-    const chirps = await getChirps();
-    res.set("Content-Type", "application/json; charset=utf-8");
-    res.status(200).send(chirps);
-    res.end();
+export async function handlerRetrieveChirps(
+    req: Request,
+    res: Response
+): Promise<void> {
+    const authorId = req.query.authorId;
+    if (typeof authorId === "string") {
+        const chirps = await getChirpsByAuthorId(authorId);
+        res.status(200).send(chirps);
+    } else {
+        const chirps = await getChirps();
+        res.set("Content-Type", "application/json; charset=utf-8");
+        res.status(200).send(chirps);
+    }
 }
 
-export async function handlerRetrieveChirp(req: Request, res: Response) {
+export async function handlerRetrieveChirp(
+    req: Request,
+    res: Response
+): Promise<void> {
     const { chirpId } = req.params;
     const chirp = await getChirp(chirpId);
     if (!chirp) {
@@ -62,7 +74,10 @@ export async function handlerRetrieveChirp(req: Request, res: Response) {
     res.end();
 }
 
-export async function handlerDeleteChirp(req: Request, res: Response) {
+export async function handlerDeleteChirp(
+    req: Request,
+    res: Response
+): Promise<void> {
     const { chirpId } = req.params;
     if (!chirpId) {
         throw new BadRequestError("Missing chirp Id");
