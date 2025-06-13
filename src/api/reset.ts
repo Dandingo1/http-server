@@ -8,7 +8,6 @@ export async function handlerReset(
     response: Response
 ): Promise<void> {
     if (config.api.platform !== "dev") {
-        console.log(config.api.platform);
         throw new UnathorizedError("Reset is only allowed in dev environment.");
     }
     await reset();

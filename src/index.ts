@@ -14,6 +14,7 @@ import { handlerCreateUser, handlerUpdateUser } from "./api/users.js";
 import { handlerReset } from "./api/reset.js";
 import {
     handlerCreateChirp,
+    handlerDeleteChirp,
     handlerRetrieveChirp,
     handlerRetrieveChirps,
 } from "./api/chirps.js";
@@ -80,13 +81,21 @@ app.get("/api/chirps", async (req, res, next) => {
         next(err);
     }
 });
-app.get("/api/chirps/:chirpID", async (req, res, next) => {
+app.get("/api/chirps/:chirpId", async (req, res, next) => {
     try {
         await handlerRetrieveChirp(req, res);
     } catch (err) {
         next(err);
     }
 });
+app.delete("/api/chirps/:chirpId", async (req, res, next) => {
+    try {
+        await handlerDeleteChirp(req, res);
+    } catch (err) {
+        next(err);
+    }
+});
+
 app.post("/api/login", async (req, res, next) => {
     try {
         await handlerLogin(req, res);

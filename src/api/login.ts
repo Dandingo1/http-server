@@ -37,8 +37,6 @@ export async function handlerLogin(req: Request, res: Response) {
 
     const accessToken = makeJWT(user.id || "", 3600, process.env.SECRET || "");
     const refreshToken = makeRefreshToken();
-    console.log(refreshToken);
-    console.log(refreshToken.length);
 
     const isTokenSaved = await createToken(user.id || "", refreshToken);
     if (!isTokenSaved) {

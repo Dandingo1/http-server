@@ -58,16 +58,7 @@ export async function handlerUpdateUser(
     }
 
     const hashedPassword = await hashPassword(params.password);
-
-    // const currentUser = await retrieveToken(accessToken);
-    // if (!currentUser) {
-    //     throw new UnathorizedError("User does not exist");
-    // }
-
     const user = await updateUser(params.email, hashedPassword, userId);
-    // if (!user) {
-    //     throw new UnathorizedError("User was not updated");
-    // }
 
     response.status(200).send({
         id: user.id,

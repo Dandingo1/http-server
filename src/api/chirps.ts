@@ -1,7 +1,17 @@
 import { Request, Response } from "express";
-import { createChirp, getChirp, getChirps } from "../db/queries/chirps.js";
+import {
+    createChirp,
+    deleteChirp,
+    getChirp,
+    getChirps,
+} from "../db/queries/chirps.js";
 import { handlerValidateChirp } from "../services/validate-chirp.js";
-import { NotFoundError, UnathorizedError } from "../classes/errors.js";
+import {
+    BadRequestError,
+    ForbiddenError,
+    NotFoundError,
+    UnathorizedError,
+} from "../classes/errors.js";
 import { getBearerToken, validateJWT } from "../services/auth.js";
 
 process.loadEnvFile(".env");
@@ -49,5 +59,33 @@ export async function handlerRetrieveChirp(req: Request, res: Response) {
 
     res.set("Content-Type", "application/json; charset=utf-8");
     res.status(200).send(chirp);
+    res.end();
+}
+
+export async function handlerDeleteChirp(req: Request, res: Response) {
+    const { chirpId } = req.params;
+    if (!chirpId) {
+        throw new BadRequestError("Missing chirp Id ");
+    }
+
+    const accessToken = getBearerToken(req);
+    if (!accessToken) {
+        throw new BadRequestError("Missing bearer token");
+    }
+
+    const userId = validateJWT(accessToken, process.env.SECRET || "");
+    const authorId = (await getChirp(chirpId)).userId;
+    console.log(userId);
+    console.log(authorId);
+    if (userId !== authorId) {
+        throw new ForbiddenError("User does not have permission");
+    }
+
+    const chirp = await deleteChirp(chirpId);
+    if (!chirp) {
+        throw new NotFoundError("Chirp cannot be found ");
+    }
+
+    res.status(204);
     res.end();
 }
