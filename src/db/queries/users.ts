@@ -23,3 +23,24 @@ export async function retrieveUser(email: string): Promise<NewUser> {
     }
     return result[0];
 }
+
+export async function updateUser(
+    email: string,
+    password: string,
+    userId: string
+): Promise<NewUser> {
+    const result = await db
+        .update(users)
+        .set({ email: email, hashed_password: password })
+        .where(eq(users.id, userId))
+        .returning();
+    if (!result) {
+        return {} as NewUser;
+    }
+    return result[0];
+}
+
+export async function retrieveUsers(): Promise<NewUser[]> {
+    const result = await db.select().from(users);
+    return result;
+}

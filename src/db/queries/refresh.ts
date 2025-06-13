@@ -31,6 +31,9 @@ export async function retrieveToken(token: string): Promise<NewUser> {
             )
         )
         .limit(1);
+    if (!result) {
+        return {} as NewUser;
+    }
 
     return result.user;
 }

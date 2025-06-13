@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
-import { createUser } from "../db/queries/users.js";
-import { BadRequestError } from "../classes/errors.js";
-import { hashPassword } from "../services/auth.js";
+import { createUser, retrieveUsers, updateUser } from "../db/queries/users.js";
+import { BadRequestError, UnathorizedError } from "../classes/errors.js";
+import { getBearerToken, hashPassword, validateJWT } from "../services/auth.js";
+import { retrieveToken } from "../db/queries/refresh.js";
+
+process.loadEnvFile(".env");
 
 export async function handlerCreateUser(
     req: Request,
@@ -35,4 +38,41 @@ export async function handlerCreateUser(
         updatedAt: user.updatedAt,
     });
     res.end();
+}
+
+export async function handlerUpdateUser(
+    request: Request,
+    response: Response
+): Promise<void> {
+    type parameters = {
+        email: string;
+        password: string;
+    };
+
+    const accessToken = getBearerToken(request);
+    const userId = validateJWT(accessToken, process.env.SECRET || "");
+
+    const params: parameters = request.body;
+    if (!params.email || !params.password) {
+        throw new BadRequestError("Missing required fields");
+    }
+
+    const hashedPassword = await hashPassword(params.password);
+
+    // const currentUser = await retrieveToken(accessToken);
+    // if (!currentUser) {
+    //     throw new UnathorizedError("User does not exist");
+    // }
+
+    const user = await updateUser(params.email, hashedPassword, userId);
+    // if (!user) {
+    //     throw new UnathorizedError("User was not updated");
+    // }
+
+    response.status(200).send({
+        id: user.id,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+    });
 }

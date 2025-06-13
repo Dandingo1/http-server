@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request } from "express";
 import { randomBytes } from "crypto";
+import { UnathorizedError } from "../classes/errors.js";
 
 const ISSUER = "chirpy";
 
@@ -36,20 +37,26 @@ export function makeJWT(
 }
 
 export function validateJWT(tokenString: string, secret: string): string {
+    let decoded: payload;
     try {
-        const { sub } = jwt.verify(tokenString, secret) as JwtPayload;
-        return sub || "";
+        decoded = jwt.verify(tokenString, secret) as JwtPayload;
     } catch (err) {
-        throw new Error("Invalid token or token has expired");
+        throw new UnathorizedError("Invalid access token");
     }
+
+    if (!decoded.sub) {
+        throw new UnathorizedError("No user Id exists");
+    }
+
+    return decoded.sub;
 }
 
 export function getBearerToken(req: Request): string {
-    const token = req.get("Authorization")?.split(" ");
+    const token = req.get("Authorization")?.split(" ")[1].trim();
     if (!token) {
-        throw new Error("Token not recognized");
+        throw new UnathorizedError("Missing access token");
     }
-    return token[1].trim();
+    return token;
 }
 
 export function makeRefreshToken(): string {
