@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request } from "express";
 import { randomBytes } from "crypto";
-import { UnathorizedError } from "../classes/errors.js";
+import { BadRequestError, UnathorizedError } from "../classes/errors.js";
 
 const ISSUER = "chirpy";
 
@@ -52,11 +52,19 @@ export function validateJWT(tokenString: string, secret: string): string {
 }
 
 export function getBearerToken(req: Request): string {
-    const token = req.get("Authorization")?.split(" ")[1].trim();
-    if (!token) {
+    const header = req.get("Authorization");
+    if (!header) {
         throw new UnathorizedError("Missing access token");
     }
-    return token;
+    return extractBearerToken(header);
+}
+
+export function extractBearerToken(header: string) {
+    const splitAuth = header.split(" ");
+    if (splitAuth.length < 2 || splitAuth[0] !== "Bearer") {
+        throw new BadRequestError("Malformed authorization header");
+    }
+    return splitAuth[1];
 }
 
 export function makeRefreshToken(): string {

@@ -65,24 +65,23 @@ export async function handlerRetrieveChirp(req: Request, res: Response) {
 export async function handlerDeleteChirp(req: Request, res: Response) {
     const { chirpId } = req.params;
     if (!chirpId) {
-        throw new BadRequestError("Missing chirp Id ");
+        throw new BadRequestError("Missing chirp Id");
     }
 
     const accessToken = getBearerToken(req);
-    if (!accessToken) {
-        throw new BadRequestError("Missing bearer token");
+    const userId = validateJWT(accessToken, process.env.SECRET || "");
+
+    const chirp = await getChirp(chirpId);
+    if (!chirp) {
+        throw new NotFoundError("Chirp was not found with the chirp Id");
     }
 
-    const userId = validateJWT(accessToken, process.env.SECRET || "");
-    const authorId = (await getChirp(chirpId)).userId;
-    console.log(userId);
-    console.log(authorId);
-    if (userId !== authorId) {
+    if (userId !== chirp.userId) {
         throw new ForbiddenError("User does not have permission");
     }
 
-    const chirp = await deleteChirp(chirpId);
-    if (!chirp) {
+    const deletedChirp = await deleteChirp(chirpId);
+    if (!deletedChirp) {
         throw new NotFoundError("Chirp cannot be found ");
     }
 
