@@ -5,6 +5,7 @@ import {
     getChirp,
     getChirps,
     getChirpsByAuthorId,
+    getChirpsByOrder,
 } from "../db/queries/chirps.js";
 import { handlerValidateChirp } from "../services/validate-chirp.js";
 import {
@@ -14,6 +15,7 @@ import {
     UnathorizedError,
 } from "../classes/errors.js";
 import { getBearerToken, validateJWT } from "../services/auth.js";
+import { NewChirp } from "src/db/schema.js";
 
 process.loadEnvFile(".env");
 
@@ -48,15 +50,15 @@ export async function handlerRetrieveChirps(
     req: Request,
     res: Response
 ): Promise<void> {
-    const authorId = req.query.authorId;
-    if (typeof authorId === "string") {
-        const chirps = await getChirpsByAuthorId(authorId);
-        res.status(200).send(chirps);
+    let chirps: NewChirp[];
+    if (typeof req.query.authorId === "string") {
+        chirps = await getChirpsByAuthorId(req.query.authorId);
+    } else if (typeof req.query.sort === "string") {
+        chirps = await getChirpsByOrder(req.query.sort);
     } else {
-        const chirps = await getChirps();
-        res.set("Content-Type", "application/json; charset=utf-8");
-        res.status(200).send(chirps);
+        chirps = await getChirps();
     }
+    res.status(200).send(chirps);
 }
 
 export async function handlerRetrieveChirp(
